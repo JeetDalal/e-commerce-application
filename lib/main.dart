@@ -1,5 +1,7 @@
 import 'package:e_commerce_app/screens/home.dart';
 import 'package:e_commerce_app/screens/main_login_screen.dart';
+import 'package:e_commerce_app/screens/navigator.dart';
+import 'package:e_commerce_app/screens/register_screen.dart';
 import 'package:e_commerce_app/services/helper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +43,9 @@ class _MyAppState extends State<MyApp> {
         // } else {
         //   return false;
         // }
-        loginSatus = value;
+        setState(() {
+          loginSatus = value;
+        });
       } else {
         //show Login Screen
         return false;
@@ -55,16 +59,19 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'Ecommerce Application',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: Colors.black,
         inputDecorationTheme: const InputDecorationTheme(
           focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black),
           ),
         ),
       ),
-      home: loginSatus ? const HomePage() : const LoginScreen(),
+      home: loginSatus ? const AppNavigator() : const LoginScreen(),
       routes: {
+        '/login-screen': (context) => const LoginScreen(),
+        '/home-screen': (context) => const HomePage(),
         '/main-login-screen': (context) => const MainLoginScreen(),
+        '/register-screen': (context) => const RegisterScreen(),
       },
     );
   }

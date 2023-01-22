@@ -52,7 +52,9 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/register-screen');
+                },
                 child: Container(
                   height: 50,
                   width: MediaQuery.of(context).size.width,

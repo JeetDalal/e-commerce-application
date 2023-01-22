@@ -1,28 +1,31 @@
 import 'dart:developer';
 
+import 'package:e_commerce_app/services/auth_service.dart';
+import 'package:e_commerce_app/services/db_service.dart';
 import 'package:e_commerce_app/services/helper.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../services/auth_service.dart';
 import '../widgets/logo.dart';
 
-class MainLoginScreen extends StatefulWidget {
-  const MainLoginScreen({Key? key}) : super(key: key);
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({Key? key}) : super(key: key);
 
   @override
-  State<MainLoginScreen> createState() => _MainLoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _MainLoginScreenState extends State<MainLoginScreen> {
-  TextEditingController _email = TextEditingController();
-  TextEditingController _password = TextEditingController();
-  bool _isLoggedIn = false;
+class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _user = TextEditingController();
+  final TextEditingController _password = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();
@@ -32,8 +35,6 @@ class _MainLoginScreenState extends State<MainLoginScreen> {
             color: Colors.black,
           ),
         ),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
       ),
       body: SafeArea(
         child: Padding(
@@ -51,14 +52,14 @@ class _MainLoginScreenState extends State<MainLoginScreen> {
                   height: 40,
                 ),
                 Text(
-                  'Welcome!',
+                  'Sign Up',
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
                   ),
                 ),
                 Text(
-                  'please login or continue to our app',
+                  'Sign Up to create a new account',
                   style: GoogleFonts.poppins(
                     color: Colors.grey,
                     // fontWeight: FontWeight.bold,
@@ -69,11 +70,11 @@ class _MainLoginScreenState extends State<MainLoginScreen> {
                   height: 50,
                 ),
                 TextField(
-                  controller: _email,
+                  controller: _user,
                   decoration: InputDecoration(
                     // focusedBorder: OutlineInputBorder(),
                     label: Text(
-                      'Email',
+                      'Username',
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
@@ -122,21 +123,88 @@ class _MainLoginScreenState extends State<MainLoginScreen> {
                   ),
                 ),
                 const SizedBox(
-                  height: 70,
+                  height: 50,
+                ),
+                TextField(
+                  controller: _email,
+                  decoration: InputDecoration(
+                    // focusedBorder: OutlineInputBorder(),
+                    label: Text(
+                      'Email',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                    labelStyle: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                    floatingLabelStyle: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 20,
+                    ),
+                    focusColor: Colors.black,
+                    fillColor: Colors.black,
+                  ),
+                ),
+                const SizedBox(
+                  height: 40,
+                ),
+                TextField(
+                  obscureText: true,
+                  autocorrect: false,
+                  decoration: InputDecoration(
+                    // focusedBorder: OutlineInputBorder(),
+                    label: Text(
+                      'Confirm Password',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                    labelStyle: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                    floatingLabelStyle: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      fontSize: 20,
+                    ),
+                    focusColor: Colors.black,
+                    fillColor: Colors.black,
+                  ),
+                ),
+                const SizedBox(
+                  height: 30,
                 ),
                 TextButton(
                   onPressed: () async {
                     try {
-                      final email = _email.text;
                       final password = _password.text;
-                      await AuthService().loginUser(email, password);
-                      // await HelperFunctions().saveUserLoggedInStatus(true);
-                      Navigator.of(context)
-                          .pushReplacementNamed('/home-screen');
+                      final email = _email.text;
+                      final userName = _user.text;
+                      await AuthService().registerUser(email, password).then(
+                        (value) async {
+                          if (value != null) {
+                            //save to SF
+                            await HelperFunctions()
+                                .saveUserLoggedInStatus(true);
+                            await DbServices().saveUerData(
+                              userName,
+                              email,
+                            );
+                            Navigator.of(context)
+                                .pushReplacementNamed('/main-login-screen');
+                          } else {
+                            showSnackBar(context, value);
+                          }
+                        },
+                      );
                     } on FirebaseAuthException catch (e) {
                       log(e.message.toString());
-                    } catch (e) {
-                      log(e.toString());
                     }
                   },
                   child: Container(
@@ -145,92 +213,16 @@ class _MainLoginScreenState extends State<MainLoginScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(30),
                       color: Colors.black,
-                    ),
-                    child: Center(
-                      child: Text(
-                        'Login',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Divider(
-                      color: Colors.black,
-                      thickness: 2,
-                    ),
-                    Text('or'),
-                    Divider(
-                      color: Colors.black,
-                      thickness: 2,
-                    ),
-                  ],
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: Container(
-                    height: 50,
-                    width: MediaQuery.of(context).size.width,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      color: const Color(0xff3b5998),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'Continue with Facebook',
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: Container(
-                    height: 50,
-                    width: MediaQuery.of(context).size.width,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      color: Colors.white,
                       border: Border.all(
                         color: Colors.black,
+                        width: 2,
                       ),
                     ),
                     child: Center(
                       child: Text(
-                        'Continue with Google',
+                        'Sign Up',
                         style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: Container(
-                    height: 50,
-                    width: MediaQuery.of(context).size.width,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      color: Colors.white,
-                      border: Border.all(
-                        color: Colors.black,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'Continue with Apple',
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -244,4 +236,14 @@ class _MainLoginScreenState extends State<MainLoginScreen> {
       ),
     );
   }
+}
+
+showSnackBar(BuildContext context, String errorMessage) {
+  return SnackBar(
+    backgroundColor: Colors.black,
+    content: Text(
+      errorMessage,
+      style: GoogleFonts.poppins(color: Colors.white),
+    ),
+  );
 }
